@@ -2,6 +2,7 @@ import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import { createHash, createHmac, randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { log } from './logger.js';
 import type { Response } from 'express';
 import {
   InvalidGrantError,
@@ -153,8 +154,10 @@ class OAuthStateStore {
     if (basedOnVersion && basedOnVersion !== newVersion.name) {
       try {
         await this.client.destroySecretVersion({ name: basedOnVersion });
-      } catch {
+      } catch (err) {
         // Cleanup is best-effort; the new version is already authoritative.
+        // Log it: a silent failure here lets old versions pile up and cost money.
+        log.error('oauth_state_version_cleanup_failed', { message: (err as Error).message });
       }
     }
   }

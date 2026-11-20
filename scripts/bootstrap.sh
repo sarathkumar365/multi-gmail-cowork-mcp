@@ -268,6 +268,13 @@ gcloud secrets add-iam-policy-binding "$accounts_secret_name" \
 gcloud secrets add-iam-policy-binding mcp-oauth-state \
   --project "$project_id" --member "serviceAccount:$runtime_sa_email" \
   --role roles/secretmanager.secretVersionAdder --quiet >/dev/null
+# The app destroys the version each write was based on. Without this role the
+# destroy fails, old versions pile up and Secret Manager bills for each one.
+for secret_name in "$accounts_secret_name" mcp-oauth-state; do
+  gcloud secrets add-iam-policy-binding "$secret_name" \
+    --project "$project_id" --member "serviceAccount:$runtime_sa_email" \
+    --role roles/secretmanager.secretVersionManager --quiet >/dev/null
+done
 pass "Least-privilege Secret Manager IAM is configured"
 
 was_existing="false"

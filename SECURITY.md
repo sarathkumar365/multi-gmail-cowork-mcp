@@ -141,7 +141,7 @@ limit how long a superseded refresh token remains recoverable (see "Concurrent w
 the account store" above for why cleanup is scoped this narrowly rather than sweeping every
 old version). Access is IAM-gated to a
 dedicated, least-privilege Cloud Run service account (`secretAccessor` on all secrets,
-`secretVersionAdder` only on the account store) rather than the project's default compute
+`secretVersionAdder` and `secretVersionManager` only on the two secrets written at runtime, the account store and `mcp-oauth-state`, so superseded versions can be destroyed) rather than the project's default compute
 service account. There is no additional application-level encryption layer on top —
 Secret Manager's own encryption at rest plus IAM access control is the protection, kept
 deliberately minimal per this project's "small codebase" goal rather than adding a

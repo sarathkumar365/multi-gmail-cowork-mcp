@@ -168,6 +168,14 @@ gcloud secrets add-iam-policy-binding "mcp-oauth-state" `
   --project $ProjectId `
   --member "serviceAccount:$SaEmail" `
   --role "roles/secretmanager.secretVersionAdder" | Out-Null
+# The app destroys the version each write was based on. Without this role the
+# destroy fails, old versions pile up and Secret Manager bills for each one.
+foreach ($name in @("gmail-mcp-accounts", "mcp-oauth-state")) {
+  gcloud secrets add-iam-policy-binding $name `
+    --project $ProjectId `
+    --member "serviceAccount:$SaEmail" `
+    --role "roles/secretmanager.secretVersionManager" | Out-Null
+}
 
 # ---------------------------------------------------------------------------
 Step "Deploying to Cloud Run (first pass  -  this discovers the service's public URL)"
